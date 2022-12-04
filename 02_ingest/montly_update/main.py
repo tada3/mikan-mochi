@@ -33,11 +33,12 @@ def ingest_flights():
         year = escape(json['year']) if 'year' in json else None
         month = escape(json['month']) if 'month' in json else None
         bucket = escape(json['bucket'])  # required
+        ds = 'kura' # Should be passed as a request param
 
         if year is None or month is None or len(year) == 0 or len(month) == 0:
             year, month = next_month(bucket)
         logging.debug('Ingesting year={} month={}'.format(year, month))
-        tableref, numrows = ingest(year, month, bucket)
+        tableref, numrows = ingest(year, month, bucket, ds)
         ok = 'Success ... ingested {} rows to {}'.format(numrows, tableref)
         logging.info(ok)
         return ok
