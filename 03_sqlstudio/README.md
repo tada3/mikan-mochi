@@ -78,9 +78,24 @@ Once you are done, delete the Cloud SQL instance since you will not need it for 
   ```./create_views.sh```
 * Compute the contingency table for various thresholds by running the script 
   ```
-  ./contingency.sh
+  % bash ./contingency.sh
   ```
 
+Result is as follows:
+```
+Waiting on bqjob_r6e26b6c4c78a70_0000018621284b60_1 ... (0s) Current status: DONE
++----------+------+------+--------+----------------+-----------------+-----------------+----------------+---------+
+| accuracy | fpr  | fnr  | THRESH | true_positives | false_positives | false_negatives | true_negatives |  total  |
++----------+------+------+--------+----------------+-----------------+-----------------+----------------+---------+
+|     0.85 | 0.04 | 0.44 |      5 |        4886947 |          177452 |          871172 |        1101118 | 7036689 |
+|      0.9 | 0.04 | 0.32 |     10 |        5262831 |          225555 |          495288 |        1053015 | 7036689 |
+|      0.9 | 0.04 |  0.3 |     11 |        5318653 |          236403 |          439466 |        1042167 | 7036689 |
+|     0.91 | 0.04 | 0.27 |     12 |        5368280 |          247409 |          389839 |        1031161 | 7036689 |
+|     0.91 | 0.05 | 0.25 |     13 |        5413676 |          258763 |          344443 |        1019807 | 7036689 |
+|     0.92 | 0.05 | 0.21 |     15 |        5491166 |          282886 |          266953 |         995684 | 7036689 |
+|     0.93 | 0.06 | 0.13 |     20 |        5625726 |          353457 |          132393 |         925113 | 7036689 |
++----------+------+------+--------+----------------+-----------------+-----------------+----------------+---------+
+```
 ### Building a dashboard
 Follow the steps in the main text of the chapter to set up a Data Studio dashboard and create charts.
 
