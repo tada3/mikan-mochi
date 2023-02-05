@@ -1,0 +1,103 @@
+SQL to check FlightDate:
+
+with tab1 as (
+  SELECT 
+    FlightDate, 
+    parse_date('%F', FORMAT('%s-%02d-%02d', YEAR, CAST(MONTH AS INT64), CAST(DayofMonth AS INT64))) as mydate
+  FROM `mikan-mochi.kura.flights_raw`
+)
+select *
+from tab1
+WHERE FlightDate <> mydate
+LIMIT 5
+
+
+SQL tocheck Reporting_Airline
+(Table Explorer is not available now.)
+
+SELECT 
+  distinct Reporting_Airline, DOT_ID_Reporting_Airline, IATA_CODE_Reporting_Airline
+#  distinct Reporting_Airline 
+# distinct DOT_ID_Reporting_Airline
+#distinct IATA_CODE_Reporting_Airline
+FROM `mikan-mochi.kura.flights_raw` 
+ LIMIT 100
+
+
+SQL to create View
+
+create or replace view kura.flights_view as
+select
+  FlightDate as fl_date,
+  Reporting_Airline as carrier,
+  OriginAirportSeqID as origin_airport_id,
+  Origin as origin,
+  DestAirportSeqID as dest_airport_id,
+  Dest as dest,
+  CRSDepTime as crs_dep_time,
+  DepTime as dep_time,
+  cast(DepDelay as float64) as dep_delay,
+  cast(TaxiOut as float64) as taxi_out,
+  WheelsOff as wheels_off,
+  WheelsOn as wheels_on,
+  cast(TaxiIn as float64) as taxi_in,
+  CRSArrTime as crs_arr_time,
+  ArrTime as arr_time,
+  cast(ArrDelay as float64) as arr_delay,
+  if (Cancelled = '1.00', True, False ) as cancelled,
+  if (Diverted = '1.00', True, False) as diverted,
+  Distance as distance,
+from `kura.flights_raw`
+
+Confution Matrix
+
+          　　　　　     　　　Arr Delay < 15min  | Arr　Delay >= 15min
+No Cancel                        5,491,166          282,886
+(Dep Delay < 15min)          
+
+995684
+Cancelled                        266,953           995,684     
+(Dep Delay >= 15min)
+
+SQL:
+select 
+  countif(dep_delay < 15 and arr_delay < 15) as tp,
+  countif(dep_delay < 15 and arr_delay >= 15) as fp,
+  countif(dep_delay >= 15 and arr_delay < 15) as fn,
+  countif(dep_delay >= 15 and arr_delay >= 15) as tn,
+from kura.flights_view
+
+
+Confusion Matrix and FPR/FNR with different Thresholds
+
+SQL:
+with tab1 as (
+select 
+  THRESH, 
+  countif(dep_delay < THRESH and arr_delay < 15) as tp,
+  countif(dep_delay < THRESH and arr_delay >= 15) as fp,
+  countif(dep_delay >= THRESH and arr_delay < 15) as fn,
+  countif(dep_delay >= THRESH and arr_delay >= 15) as tn,
+  count(*) as total
+from 
+  kura.flights_view,
+  unnest([5, 10, 12, 15, 20]) as THRESH
+where dep_delay is not null 
+  and arr_delay is not null
+group by THRESH
+)
+select
+  THRESH,
+  round((tp + tn) / total, 2) as acc,
+  round(fp / (tp + fp), 2) as fpr,
+  round(fn / (fn + tn), 2) as fnr
+from tab1
+
+Result:
+Row	THRESH 	acc fpr     fnr
+1	5 	0.85 	0.04 	0.44
+2	10 	0.9 	0.04 	0.32
+3	12 	0.91 	0.04 	0.27
+4	15 	0.92 	0.05 	0.21
+5	20 	0.93 	0.06 	0.13
+
