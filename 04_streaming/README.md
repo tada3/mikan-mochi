@@ -34,6 +34,11 @@ cd ../03_sqlstudio
 	head airports_with_tz-00000*
 	rm airports_with_tz-*
 	```
+* Create sample data
+	```
+	bash bqsample.sh kura mikan-mochi-biwako
+	```
+
 * Converting times to UTC:
 	```
 	./df03.py
