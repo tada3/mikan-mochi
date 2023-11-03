@@ -87,7 +87,7 @@ def tz_correct(fields, airport_timezones):
         fields["ARR_AIRPORT_TZOFFSET"] = arrtz
         yield fields
     except KeyError as e:
-        logging.exception(f"Ignoring {fields} because airport is not known")
+        logging.exception(f"Ignoring {fields} because airport is not known: {e}")
 
 
 def get_next_event(fields):
@@ -106,9 +106,12 @@ def get_next_event(fields):
 
 
 def run():
+    airports_filename = 'airports.csv.gz'
+    flights_output = 'all_flights'
+
     with beam.Pipeline('DirectRunner') as pipeline:
         airports = (pipeline
-                    | 'airports:read' >> beam.io.ReadFromText('airports.csv.gz')
+                    | 'airports:read' >> beam.io.ReadFromText(airports_filename)
                     | beam.Filter(lambda line: "United States" in line)
                     | 'airports:fields' >> beam.Map(lambda line: next(csv.reader([line])))
                     | 'airports:tz' >> beam.Map(lambda fields: (fields[0], addtimezone(fields[21], fields[26])))
@@ -122,7 +125,7 @@ def run():
 
         (flights
          | 'flights:tostring' >> beam.Map(lambda fields: json.dumps(fields))
-         | 'flights:out' >> beam.io.textio.WriteToText('all_flights')
+         | 'flights:out' >> beam.io.textio.WriteToText(flights_output)
          )
 
         events = flights | beam.FlatMap(get_next_event)

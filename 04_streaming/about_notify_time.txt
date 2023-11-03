@@ -1,0 +1,18 @@
+5/2のデータを見てみる。
+
+	
+EVENT_TYPE EVENT_TIME
+departed 2015-05-02 01:15:00 UTC
+wheelsoff 2015-05-02 01:31:00 UTC
+arrived 2015-05-02 03:32:00 UTC
+arrived 2015-05-02 03:34:00 UTC
+departed 2015-05-02 17:10:00 UTC
+wheelsoff 2015-05-02 17:21:00 UTC
+arrived 2015-05-02 18:14:00 UTC
+departed 2015-05-02 23:52:00 UTC
+
+
+03:34:00 の次が17:10:00と14時間も空いている。
+すると、3:34:00を送信するときのtimestampが17:10:00になってしまうという問題がある。
+
+コードを書き換えて、送信対象の中の一番新しいeventのnotify_timeをtimestampにするようにする。
